@@ -1,19 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NepaliDatePicker } from "nepali-datepicker-reactjs";
+import SignatureCanvas from "react-signature-canvas";
+import { useRef } from "react";
 import "nepali-datepicker-reactjs/dist/index.css";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import "./Form.css";
+import NepaliDate from "nepali-date-converter";
 
 function Form() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [adbsReady, setAdbsReady] = useState(false);
+
+  const adToBs = (ad) => {
+    try {
+      const [y, m, d] = ad.split("-").map(Number);
+      const nepDate = new NepaliDate(new Date(y, m - 1, d));
+      return `${nepDate.getYear()}-${String(nepDate.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(nepDate.getDate()).padStart(2, "0")}`;
+    } catch (err) {
+      console.error("adToBs error:", err);
+      return "";
+    }
+  };
+
+  const bsToAd = (bs) => {
+    try {
+      const [y, m, d] = bs.split("-").map(Number);
+      const nepDate = new NepaliDate(y, m - 1, d);
+      const adDate = nepDate.getAD();
+      return `${adDate.year}-${String(adDate.month).padStart(2, "0")}-${String(
+        adDate.date
+      ).padStart(2, "0")}`;
+    } catch (err) {
+      console.error("bsToAd error:", err);
+      return "";
+    }
+  };
   const [formData, setFormData] = useState({
     // Step 1: Personal Information
     fullName: "",
     dateOfBirth: "",
-    dobType: "AD",
+    dateOfBirthBS: "",
     gender: "",
     nationality: "",
     citizenshipNumber: "",
     citizenshipIssueDate: "",
+    citizenshipIssueDateBS: "",
+
     citizenshipIssueDistrict: "",
     beneficiaryIdNo: "",
     panNumber: "",
@@ -65,6 +102,7 @@ function Form() {
     panNumberGuardian: "",
     birthRegistrationNumber: "",
     issueDate: "",
+    issueDateBS: "",
     issueAuthority: "",
     guardianSignature: "",
 
@@ -77,6 +115,8 @@ function Form() {
 
     //step 9 : location
     //
+    rightThumbprint: "",
+    leftThumbprint: "",
 
     errors: {},
   });
@@ -87,6 +127,63 @@ function Form() {
   };
   const handleDateChange = (name, value) => {
     setFormData((prevState) => ({ ...prevState, [name]: value }));
+  };
+  const sigCanvas = useRef();
+
+  const clearSignature = () => {
+    sigCanvas.current.clear();
+  };
+
+  const saveSignature = () => {
+    const signatureData = sigCanvas.current.toDataURL(); // Base64 image
+    setFormData((prevState) => ({
+      ...prevState,
+      guardianSignature: signatureData,
+    }));
+  };
+
+  const [mapPosition, setMapPosition] = useState([27.7172, 85.324]); // Kathmandu
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+    iconUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  });
+  function LocationPicker({ position, setPosition }) {
+    useMapEvents({
+      click(e) {
+        setPosition([e.latlng.lat, e.latlng.lng]);
+      },
+    });
+    return position ? <Marker position={position} /> : null;
+  }
+  const rightThumbCanvas = useRef();
+  const leftThumbCanvas = useRef();
+  const clearRightThumbprint = () => {
+    rightThumbCanvas.current.clear();
+  };
+
+  const saveRightThumbprint = () => {
+    const thumbData = rightThumbCanvas.current.toDataURL();
+    setFormData((prevState) => ({
+      ...prevState,
+      rightThumbprint: thumbData,
+    }));
+  };
+
+  const clearLeftThumbprint = () => {
+    leftThumbCanvas.current.clear();
+  };
+
+  const saveLeftThumbprint = () => {
+    const thumbData = leftThumbCanvas.current.toDataURL();
+    setFormData((prevState) => ({
+      ...prevState,
+      leftThumbprint: thumbData,
+    }));
   };
 
   const validateStep = (step) => {
@@ -139,34 +236,54 @@ function Form() {
         <label className="form-label">
           Date of Birth <span className="required">*</span>
         </label>
-        <div className="dob-wrapper">
-          <select
-            name="dobType"
-            value={formData.dobType}
-            onChange={handleChange}
-            className="dob-select"
-          >
-            <option value="AD">AD</option>
-            <option value="BS">BS</option>
-          </select>
 
-          {formData.dobType === "AD" ? (
+        <div className="grid-2-cols">
+          <div className="date-column">
+            <label className="small-label">English Date (AD)</label>
             <input
               type="date"
               name="dateOfBirth"
               value={formData.dateOfBirth}
-              onChange={handleChange}
-              className="dob-input"
+              onChange={(e) => {
+                const v = e.target.value;
+                // console.log("=== DOB AD Changed ===");
+                // console.log("Input value:", v);
+
+                setFormData((prev) => ({ ...prev, dateOfBirth: v }));
+
+                if (v) {
+                  //console.log("Calling adToBs with:", v);
+                  const bs = adToBs(v);
+                  // console.log("Converted BS result:", bs);
+                  if (bs) {
+                    setFormData((prev) => ({ ...prev, dateOfBirthBS: bs }));
+                  }
+                }
+              }}
+              className="form-input"
             />
-          ) : (
-            <NepaliDatePicker
-              inputClassName="dob-input"
-              value={formData.dateOfBirth}
-              onChange={(value) => handleDateChange("dateOfBirth", value)}
-              options={{ calenderLocale: "ne", valueLocale: "en" }}
+          </div>
+
+          <div className="date-column">
+            <label className="small-label">Nepali Date (BS)</label>
+            <input
+              type="text"
+              value={formData.dateOfBirthBS || ""}
+              placeholder="YYYY-MM-DD"
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData((prev) => ({ ...prev, dateOfBirthBS: value }));
+                if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                  // REMOVED adbsReady check
+                  const ad = bsToAd(value);
+                  if (ad) setFormData((prev) => ({ ...prev, dateOfBirth: ad }));
+                }
+              }}
+              className="form-input"
             />
-          )}
+          </div>
         </div>
+
         {formData.errors.dateOfBirth && (
           <p className="error-message">{formData.errors.dateOfBirth}</p>
         )}
@@ -227,35 +344,56 @@ function Form() {
         <label className="form-label">
           Citizenship Issue Date <span className="required">*</span>
         </label>
-        <div className="dob-wrapper">
-          <select
-            name="dobType"
-            value={formData.dobType}
-            onChange={handleChange}
-            className="dob-select"
-          >
-            <option value="AD">AD</option>
-            <option value="BS">BS</option>
-          </select>
-          {formData.dobType === "AD" ? (
+
+        <div className="grid-2-cols">
+          <div className="date-column">
+            <label className="small-label">English Date (AD)</label>
             <input
               type="date"
               name="citizenshipIssueDate"
               value={formData.citizenshipIssueDate}
-              onChange={handleChange}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFormData((prev) => ({ ...prev, citizenshipIssueDate: v }));
+                if (v) {
+                  const bs = adToBs(v);
+                  if (bs)
+                    setFormData((prev) => ({
+                      ...prev,
+                      citizenshipIssueDateBS: bs,
+                    }));
+                }
+              }}
               className="form-input"
             />
-          ) : (
-            <NepaliDatePicker
-              inputClassName="form-input"
-              value={formData.citizenshipIssueDate}
-              onChange={(value) =>
-                handleDateChange("citizenshipIssueDate", value)
-              }
-              options={{ calenderLocale: "ne", valueLocale: "en" }}
+          </div>
+
+          <div className="date-column">
+            <label className="small-label">Nepali Date (BS)</label>
+            <input
+              type="text"
+              value={formData.citizenshipIssueDateBS || ""}
+              placeholder="YYYY-MM-DD"
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData((prev) => ({
+                  ...prev,
+                  citizenshipIssueDateBS: value,
+                }));
+                if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                  const ad = bsToAd(value);
+                  if (ad)
+                    setFormData((prev) => ({
+                      ...prev,
+                      citizenshipIssueDate: ad,
+                    }));
+                }
+              }}
+              className="form-input"
             />
-          )}
+          </div>
         </div>
+
         {formData.errors.citizenshipIssueDate && (
           <p className="error-message">
             {formData.errors.citizenshipIssueDate}
@@ -775,10 +913,10 @@ function Form() {
           <div className="radio-item">
             <input
               type="radio"
-              id="agriculture"
+              id="business"
               name="occupationType"
               value="agirculture"
-              checked={formData.occupationType === "agriculture"}
+              checked={formData.occupationType === "business"}
               onChange={handleChange}
               className="radio-input"
             />
@@ -1013,16 +1151,410 @@ function Form() {
   const renderStep6 = () => (
     <div className="form-section">
       <h2 className="section-title">Guardian Information (if minor)</h2>
-      <p>Step 6 content coming soon...</p>
+
+      <div className="form-field">
+        <label className="form-label">
+          Guardian Name <span className="required">*</span>
+        </label>
+        <input
+          type="text"
+          name="guardianName"
+          value={formData.guardianName}
+          onChange={handleChange}
+          className="form-input"
+        />
+        {formData.errors.guardianName && (
+          <p className="error-message">{formData.errors.guardianName}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Relationship <span className="required">*</span>
+        </label>
+        <select
+          name="relationship"
+          value={formData.relationship}
+          onChange={handleChange}
+          className="form-input"
+        >
+          <option value="">Select Relationship</option>
+          <option value="Father">Father</option>
+          <option value="Mother">Mother</option>
+          <option value="Legal Guardian">Legal Guardian</option>
+          <option value="Other">Other</option>
+        </select>
+        {formData.errors.relationship && (
+          <p className="error-message">{formData.errors.relationship}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Guardian Address <span className="required">*</span>
+        </label>
+        <textarea
+          name="guardianAddress"
+          value={formData.guardianAddress}
+          onChange={handleChange}
+          className="form-textarea"
+          rows="3"
+          placeholder="Enter guardian's full address"
+        />
+        {formData.errors.guardianAddress && (
+          <p className="error-message">{formData.errors.guardianAddress}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Mobile Number <span className="required">*</span>
+        </label>
+        <input
+          type="tel"
+          name="mobileNumber"
+          value={formData.mobileNumber}
+          onChange={handleChange}
+          className="form-input"
+          placeholder="e.g., 98XXXXXXXX"
+        />
+        {formData.errors.mobileNumber && (
+          <p className="error-message">{formData.errors.mobileNumber}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Email <span className="required">*</span>
+        </label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          className="form-input"
+          placeholder="guardian@example.com"
+        />
+        {formData.errors.email && (
+          <p className="error-message">{formData.errors.email}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">Guardian PAN Number</label>
+        <input
+          type="text"
+          name="panNumberGuardian"
+          value={formData.panNumberGuardian}
+          onChange={handleChange}
+          className="form-input"
+        />
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Birth Registration Number <span className="required">*</span>
+        </label>
+        <input
+          type="text"
+          name="birthRegistrationNumber"
+          value={formData.birthRegistrationNumber}
+          onChange={handleChange}
+          className="form-input"
+        />
+        {formData.errors.birthRegistrationNumber && (
+          <p className="error-message">
+            {formData.errors.birthRegistrationNumber}
+          </p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Issue Date <span className="required">*</span>
+        </label>
+
+        <div className="grid-2-cols">
+          <div className="date-column">
+            <label className="small-label">English Date (AD)</label>
+            <input
+              type="date"
+              name="issueDate"
+              value={formData.issueDate}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFormData((prev) => ({ ...prev, issueDate: v }));
+                if (v) {
+                  const bs = adToBs(v);
+                  if (bs) setFormData((prev) => ({ ...prev, issueDateBS: bs }));
+                }
+              }}
+              className="form-input"
+            />
+          </div>
+
+          <div className="date-column">
+            <label className="small-label">Nepali Date (BS)</label>
+            <input
+              type="text"
+              value={formData.issueDateBS || ""}
+              placeholder="YYYY-MM-DD"
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData((prev) => ({ ...prev, issueDateBS: value }));
+                if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                  const ad = bsToAd(value);
+                  if (ad) setFormData((prev) => ({ ...prev, issueDate: ad }));
+                }
+              }}
+              className="form-input"
+            />
+          </div>
+        </div>
+
+        {formData.errors.issueDate && (
+          <p className="error-message">{formData.errors.issueDate}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Issue Authority <span className="required">*</span>
+        </label>
+        <input
+          type="text"
+          name="issueAuthority"
+          value={formData.issueAuthority}
+          onChange={handleChange}
+          className="form-input"
+          placeholder="e.g., District Administration Office"
+        />
+        {formData.errors.issueAuthority && (
+          <p className="error-message">{formData.errors.issueAuthority}</p>
+        )}
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">
+          Guardian Signature <span className="required">*</span>
+        </label>
+        <div
+          style={{ border: "1px solid #ccc", width: "100%", height: "200px" }}
+        >
+          <SignatureCanvas
+            ref={sigCanvas}
+            canvasProps={{
+              className: "signature-canvas",
+              style: { width: "100%", height: "100%" },
+            }}
+          />
+        </div>
+        <div style={{ marginTop: "10px" }}>
+          <button
+            type="button"
+            onClick={clearSignature}
+            className="btn btn-secondary"
+          >
+            Clear Signature
+          </button>
+        </div>
+      </div>
     </div>
   );
 
-  const renderStep7 = () => (
-    <div className="form-section">
-      <h2 className="section-title">Investment Disclosure</h2>
-      <p>Step 7 content coming soon...</p>
-    </div>
-  );
+  const renderStep7 = () => {
+    return (
+      <div className="form-section">
+        {/* Investment Disclosure Section */}
+        <h2 className="section-title">Investment Disclosure</h2>
+        <div className="form-field">
+          <label className="form-label">
+            <input
+              type="checkbox"
+              name="investmentInvolved"
+              checked={formData.investmentInvolved || false}
+              onChange={(e) =>
+                setFormData((prevState) => ({
+                  ...prevState,
+                  investmentInvolved: e.target.checked,
+                }))
+              }
+              className="checkbox-input"
+            />
+            I am involved in other investment companies
+          </label>
+        </div>
+        {formData.investmentInvolved && (
+          <div className="form-field">
+            <label className="form-label">Details (if any)</label>
+            <textarea
+              name="investmentDetails"
+              value={formData.investmentDetails || ""}
+              onChange={handleChange}
+              className="form-textarea"
+              rows="4"
+              placeholder="Please provide details about your investment companies"
+            />
+          </div>
+        )}
+        {/* Legal Consent Section */}
+        <h2 className="section-title" style={{ marginTop: "2rem" }}>
+          Legal Consent
+        </h2>
+        <div className="form-field">
+          <label className="form-label">Declaration</label>
+          <textarea
+            name="legalDeclaration"
+            value={formData.legalDeclaration || ""}
+            onChange={handleChange}
+            className="form-textarea"
+            rows="5"
+            placeholder="Enter your legal declaration here"
+          />
+        </div>
+        <div className="form-field">
+          <label className="form-label">
+            <input
+              type="checkbox"
+              name="legalConsent"
+              checked={formData.legalConsent || false}
+              onChange={(e) =>
+                setFormData((prevState) => ({
+                  ...prevState,
+                  legalConsent: e.target.checked,
+                }))
+              }
+              className="checkbox-input"
+            />
+            I confirm the above information is true and I accept legal
+            responsibility.
+          </label>
+          {formData.errors.legalConsent && (
+            <p className="error-message">{formData.errors.legalConsent}</p>
+          )}
+        </div>
+        {/* Location Map Section */}
+        <h2 className="section-title" style={{ marginTop: "2rem" }}>
+          Location Map
+        </h2>
+        <div className="form-group">
+          <label className="form-label">
+            Click on the map to select your location
+          </label>
+          <div style={{ height: "400px", width: "100%", marginBottom: "1rem" }}>
+            <MapContainer
+              center={mapPosition}
+              zoom={13}
+              style={{ height: "100%", width: "100%", borderRadius: "8px" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap"
+              />
+              <LocationPicker
+                position={mapPosition}
+                setPosition={setMapPosition}
+              />
+            </MapContainer>
+          </div>
+          <div
+            style={{
+              padding: "1rem",
+              backgroundColor: "#eff6ff",
+              borderRadius: "8px",
+            }}
+          >
+            <p>
+              <strong>Selected Location:</strong>
+            </p>
+            <p>Latitude: {mapPosition[0].toFixed(6)}</p>
+            <p>Longitude: {mapPosition[1].toFixed(6)}</p>
+          </div>
+        </div>
+        {/* Thumbprint Section */}
+        <h2 className="section-title" style={{ marginTop: "2rem" }}>
+          Thumbprints
+        </h2>
+        <div className="grid-2-cols">
+          <div className="form-field">
+            <label className="form-label">
+              Right Thumbprint <span className="required">*</span>
+            </label>
+            <div
+              style={{
+                border: "1px solid #ccc",
+                width: "100%",
+                height: "200px",
+              }}
+            >
+              <SignatureCanvas
+                ref={rightThumbCanvas}
+                canvasProps={{
+                  className: "signature-canvas",
+                  style: { width: "100%", height: "100%" },
+                }}
+              />
+            </div>
+            <div style={{ marginTop: "10px" }}>
+              <button
+                type="button"
+                onClick={clearRightThumbprint}
+                className="btn btn-secondary"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={saveRightThumbprint}
+                className="btn btn-secondary"
+                style={{ marginLeft: "10px" }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Left Thumbprint <span className="required">*</span>
+            </label>
+            <div
+              style={{
+                border: "1px solid #ccc",
+                width: "100%",
+                height: "200px",
+              }}
+            >
+              <SignatureCanvas
+                ref={leftThumbCanvas}
+                canvasProps={{
+                  className: "signature-canvas",
+                  style: { width: "100%", height: "100%" },
+                }}
+              />
+            </div>
+            <div style={{ marginTop: "10px" }}>
+              <button
+                type="button"
+                onClick={clearLeftThumbprint}
+                className="btn btn-secondary"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={saveLeftThumbprint}
+                className="btn btn-secondary"
+                style={{ marginLeft: "10px" }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className="form-container">
       {/* Progress Indicator */}

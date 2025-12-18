@@ -230,6 +230,91 @@
   background-color: #059669;
 }
 
+/* Checkbox Styles */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem;
+}
+
+/* Radio Button Styles - OUTSIDE media query */
+.radio-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1rem !important;
+  margin-top: 0.5rem !important;
+  flex-direction: row !important;
+}
+
+.radio-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  min-width: fit-content !important;
+  flex-direction: row !important;
+  margin-bottom: 0 !important;
+}
+
+.radio-input {
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer !important;
+  accent-color: #2563eb !important;
+  margin: 0 !important;
+}
+
+.radio-label {
+  margin: 0 !important;
+  cursor: pointer !important;
+  font-size: 0.95rem !important;
+  color: #374151 !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+}
+
+.radio-label:hover {
+  color: #1f2937 !important;
+}
+
+/* Date Dual Picker */
+.date-dual-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.date-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.small-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.35rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .grid-2-cols {
@@ -252,52 +337,15 @@
     width: 2rem;
     height: 2rem;
   }
-  .checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
 
-  .checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .date-dual-picker {
+    grid-template-columns: 1fr;
   }
+}
 
-  .checkbox-input {
-    width: 1.25rem;
-    height: 1.25rem;
-    cursor: pointer;
-    accent-color: #2563eb;
-  }
-
-  .checkbox-label {
-    cursor: pointer;
-    user-select: none;
-    font-size: 1rem;
-  }
+/* Very small screens - stack radio buttons */
+@media (max-width: 480px) {
   .radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .radio-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .radio-input {
-    width: 1.25rem;
-    height: 1.25rem;
-    cursor: pointer;
-    accent-color: #2563eb;
-  }
-
-  .radio-label {
-    cursor: pointer;
-    user-select: none;
-    font-size: 1rem;
+    flex-direction: column !important;
   }
 }

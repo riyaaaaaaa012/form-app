@@ -204,14 +204,46 @@ function Form() {
     setFormData((prevState) => ({ ...prevState, errors: {} }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    // Only submit if on the last step
+    if (currentStep !== 7) {
+      return; // Don't submit if not on final step
+    }
+
     if (validateStep(3)) {
-      console.log("Final Form Data:", formData);
-      alert("Form submitted successfully!");
+      try {
+        const payload = {
+          ...formData,
+          latitude: mapPosition[0],
+          longitude: mapPosition[1],
+        };
+
+        const response = await fetch("http://localhost:5000/api/forms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert(`Form submitted successfully! ID: ${result.id}`);
+          // Optionally reset form here
+        } else {
+          alert(`Submission failed: ${result.error}`);
+        }
+      } catch (error) {
+        alert(`Error submitting form: ${error.message}`);
+        console.error(error);
+      }
     }
   };
-
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter" && currentStep !== 7) {
+      event.preventDefault();
+    }
+  };
   const renderStep1 = () => (
     <div className="form-section">
       <h2 className="section-title">Personal Information</h2>
@@ -469,218 +501,249 @@ function Form() {
     </div>
   );
 
-  const renderStep2 = () => (
-    <div className="form-section">
-      <h2 className="section-title">Address Information</h2>
+  const renderStep2 = () => {
+    const handleSameAsCurrentAddress = (e) => {
+      if (e.target.checked) {
+        setFormData((prevState) => ({
+          ...prevState,
+          permanentWardNo: prevState.currentWardNo,
+          permanentMunicipality: prevState.currentMunicipality,
+          permanentDistrict: prevState.currentDistrict,
+          permanentProvince: prevState.currentProvince,
+          permanentCountry: prevState.currentCountry,
+        }));
+      }
+    };
 
-      <h3 className="subsection-title">Current Address</h3>
+    return (
+      <div className="form-section">
+        <h2 className="section-title">Address Information</h2>
 
-      <div className="grid-2-cols">
+        <h3 className="subsection-title">Current Address</h3>
+
+        <div className="grid-2-cols">
+          <div className="form-field">
+            <label className="form-label">
+              Ward No. <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="currentWardNo"
+              value={formData.currentWardNo}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.currentWardNo && (
+              <p className="error-message">{formData.errors.currentWardNo}</p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Municipality <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="currentMunicipality"
+              value={formData.currentMunicipality}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.currentMunicipality && (
+              <p className="error-message">
+                {formData.errors.currentMunicipality}
+              </p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              District <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="currentDistrict"
+              value={formData.currentDistrict}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.currentDistrict && (
+              <p className="error-message">{formData.errors.currentDistrict}</p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Province <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="currentProvince"
+              value={formData.currentProvince}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.currentProvince && (
+              <p className="error-message">{formData.errors.currentProvince}</p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Country <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="currentCountry"
+              value={formData.currentCountry}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.currentCountry && (
+              <p className="error-message">{formData.errors.currentCountry}</p>
+            )}
+          </div>
+        </div>
+
+        <h3 className="subsection-title">Permanent Address</h3>
+
+        <div className="form-field" style={{ marginBottom: "1.5rem" }}>
+          <label className="form-label">
+            <input
+              type="checkbox"
+              onChange={handleSameAsCurrentAddress}
+              className="checkbox-input"
+            />
+            Same as current address
+          </label>
+        </div>
+
+        <div className="grid-2-cols">
+          <div className="form-field">
+            <label className="form-label">
+              Ward No. <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="permanentWardNo"
+              value={formData.permanentWardNo}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.permanentWardNo && (
+              <p className="error-message">{formData.errors.permanentWardNo}</p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Municipality <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="permanentMunicipality"
+              value={formData.permanentMunicipality}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.permanentMunicipality && (
+              <p className="error-message">
+                {formData.errors.permanentMunicipality}
+              </p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              District <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="permanentDistrict"
+              value={formData.permanentDistrict}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.permanentDistrict && (
+              <p className="error-message">
+                {formData.errors.permanentDistrict}
+              </p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Province <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="permanentProvince"
+              value={formData.permanentProvince}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.permanentProvince && (
+              <p className="error-message">
+                {formData.errors.permanentProvince}
+              </p>
+            )}
+          </div>
+
+          <div className="form-field">
+            <label className="form-label">
+              Country <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="permanentCountry"
+              value={formData.permanentCountry}
+              onChange={handleChange}
+              className="form-input"
+            />
+            {formData.errors.permanentCountry && (
+              <p className="error-message">
+                {formData.errors.permanentCountry}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <h3 className="subsection-title">Contact Information</h3>
+
         <div className="form-field">
           <label className="form-label">
-            Ward No. <span className="required">*</span>
+            Contact Number <span className="required">*</span>
           </label>
           <input
-            type="text"
-            name="currentWardNo"
-            value={formData.currentWardNo}
+            type="tel"
+            name="contactNumber"
+            value={formData.contactNumber}
             onChange={handleChange}
             className="form-input"
           />
-          {formData.errors.currentWardNo && (
-            <p className="error-message">{formData.errors.currentWardNo}</p>
+          {formData.errors.contactNumber && (
+            <p className="error-message">{formData.errors.contactNumber}</p>
           )}
         </div>
 
         <div className="form-field">
           <label className="form-label">
-            Municipality <span className="required">*</span>
+            Email Address <span className="required">*</span>
           </label>
           <input
-            type="text"
-            name="currentMunicipality"
-            value={formData.currentMunicipality}
+            type="email"
+            name="emailAddress"
+            value={formData.emailAddress}
             onChange={handleChange}
             className="form-input"
           />
-          {formData.errors.currentMunicipality && (
-            <p className="error-message">
-              {formData.errors.currentMunicipality}
-            </p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            District <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="currentDistrict"
-            value={formData.currentDistrict}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.currentDistrict && (
-            <p className="error-message">{formData.errors.currentDistrict}</p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            Province <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="currentProvince"
-            value={formData.currentProvince}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.currentProvince && (
-            <p className="error-message">{formData.errors.currentProvince}</p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            Country <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="currentCountry"
-            value={formData.currentCountry}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.currentCountry && (
-            <p className="error-message">{formData.errors.currentCountry}</p>
+          {formData.errors.emailAddress && (
+            <p className="error-message">{formData.errors.emailAddress}</p>
           )}
         </div>
       </div>
-
-      <h3 className="subsection-title">Permanent Address</h3>
-
-      <div className="grid-2-cols">
-        <div className="form-field">
-          <label className="form-label">
-            Ward No. <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="permanentWardNo"
-            value={formData.permanentWardNo}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.permanentWardNo && (
-            <p className="error-message">{formData.errors.permanentWardNo}</p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            Municipality <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="permanentMunicipality"
-            value={formData.permanentMunicipality}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.permanentMunicipality && (
-            <p className="error-message">
-              {formData.errors.permanentMunicipality}
-            </p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            District <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="permanentDistrict"
-            value={formData.permanentDistrict}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.permanentDistrict && (
-            <p className="error-message">{formData.errors.permanentDistrict}</p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            Province <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="permanentProvince"
-            value={formData.permanentProvince}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.permanentProvince && (
-            <p className="error-message">{formData.errors.permanentProvince}</p>
-          )}
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            Country <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="permanentCountry"
-            value={formData.permanentCountry}
-            onChange={handleChange}
-            className="form-input"
-          />
-          {formData.errors.permanentCountry && (
-            <p className="error-message">{formData.errors.permanentCountry}</p>
-          )}
-        </div>
-      </div>
-
-      <h3 className="subsection-title">Contact Information</h3>
-
-      <div className="form-field">
-        <label className="form-label">
-          Contact Number <span className="required">*</span>
-        </label>
-        <input
-          type="tel"
-          name="contactNumber"
-          value={formData.contactNumber}
-          onChange={handleChange}
-          className="form-input"
-        />
-        {formData.errors.contactNumber && (
-          <p className="error-message">{formData.errors.contactNumber}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Email Address <span className="required">*</span>
-        </label>
-        <input
-          type="email"
-          name="emailAddress"
-          value={formData.emailAddress}
-          onChange={handleChange}
-          className="form-input"
-        />
-        {formData.errors.emailAddress && (
-          <p className="error-message">{formData.errors.emailAddress}</p>
-        )}
-      </div>
-    </div>
-  );
-
+    );
+  };
   const renderStep3 = () => (
     <div className="form-section">
       <h2 className="section-title">Family Information</h2>
@@ -1148,220 +1211,269 @@ function Form() {
       </div>
     </div>
   );
-  const renderStep6 = () => (
-    <div className="form-section">
-      <h2 className="section-title">Guardian Information (if minor)</h2>
+  const renderStep6 = () => {
+    const handleIsMinorChange = (e) => {
+      setFormData((prevState) => ({
+        ...prevState,
+        isMinor: e.target.checked,
+      }));
+    };
 
-      <div className="form-field">
-        <label className="form-label">
-          Guardian Name <span className="required">*</span>
-        </label>
-        <input
-          type="text"
-          name="guardianName"
-          value={formData.guardianName}
-          onChange={handleChange}
-          className="form-input"
-        />
-        {formData.errors.guardianName && (
-          <p className="error-message">{formData.errors.guardianName}</p>
+    return (
+      <div className="form-section">
+        <h2 className="section-title">Guardian Information</h2>
+
+        <div className="form-field" style={{ marginBottom: "1.5rem" }}>
+          <label className="form-label">
+            <input
+              type="checkbox"
+              name="isMinor"
+              checked={formData.isMinor || false}
+              onChange={handleIsMinorChange}
+              className="checkbox-input"
+            />
+            Is Minor (Below 18 years)
+          </label>
+        </div>
+
+        {formData.isMinor && (
+          <>
+            <div className="form-field">
+              <label className="form-label">
+                Guardian Name <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                name="guardianName"
+                value={formData.guardianName}
+                onChange={handleChange}
+                className="form-input"
+              />
+              {formData.errors.guardianName && (
+                <p className="error-message">{formData.errors.guardianName}</p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Relationship <span className="required">*</span>
+              </label>
+              <select
+                name="relationship"
+                value={formData.relationship}
+                onChange={handleChange}
+                className="form-input"
+              >
+                <option value="">Select Relationship</option>
+                <option value="Father">Father</option>
+                <option value="Mother">Mother</option>
+                <option value="Legal Guardian">Legal Guardian</option>
+                <option value="Other">Other</option>
+              </select>
+              {formData.errors.relationship && (
+                <p className="error-message">{formData.errors.relationship}</p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Guardian Address <span className="required">*</span>
+              </label>
+              <textarea
+                name="guardianAddress"
+                value={formData.guardianAddress}
+                onChange={handleChange}
+                className="form-textarea"
+                rows="3"
+                placeholder="Enter guardian's full address"
+              />
+              {formData.errors.guardianAddress && (
+                <p className="error-message">
+                  {formData.errors.guardianAddress}
+                </p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Mobile Number <span className="required">*</span>
+              </label>
+              <input
+                type="tel"
+                name="mobileNumber"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g., 98XXXXXXXX"
+              />
+              {formData.errors.mobileNumber && (
+                <p className="error-message">{formData.errors.mobileNumber}</p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Email <span className="required">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="guardian@example.com"
+              />
+              {formData.errors.email && (
+                <p className="error-message">{formData.errors.email}</p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">Guardian PAN Number</label>
+              <input
+                type="text"
+                name="panNumberGuardian"
+                value={formData.panNumberGuardian}
+                onChange={handleChange}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Birth Registration Number <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                name="birthRegistrationNumber"
+                value={formData.birthRegistrationNumber}
+                onChange={handleChange}
+                className="form-input"
+              />
+              {formData.errors.birthRegistrationNumber && (
+                <p className="error-message">
+                  {formData.errors.birthRegistrationNumber}
+                </p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Issue Date <span className="required">*</span>
+              </label>
+
+              <div className="grid-2-cols">
+                <div className="date-column">
+                  <label className="small-label">English Date (AD)</label>
+                  <input
+                    type="date"
+                    name="issueDate"
+                    value={formData.issueDate}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setFormData((prev) => ({ ...prev, issueDate: v }));
+                      if (v) {
+                        const bs = adToBs(v);
+                        if (bs)
+                          setFormData((prev) => ({ ...prev, issueDateBS: bs }));
+                      }
+                    }}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="date-column">
+                  <label className="small-label">Nepali Date (BS)</label>
+                  <input
+                    type="text"
+                    value={formData.issueDateBS || ""}
+                    placeholder="YYYY-MM-DD"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((prev) => ({ ...prev, issueDateBS: value }));
+                      if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                        const ad = bsToAd(value);
+                        if (ad)
+                          setFormData((prev) => ({ ...prev, issueDate: ad }));
+                      }
+                    }}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              {formData.errors.issueDate && (
+                <p className="error-message">{formData.errors.issueDate}</p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Issue Authority <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                name="issueAuthority"
+                value={formData.issueAuthority}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g., District Administration Office"
+              />
+              {formData.errors.issueAuthority && (
+                <p className="error-message">
+                  {formData.errors.issueAuthority}
+                </p>
+              )}
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">
+                Guardian Signature <span className="required">*</span>
+              </label>
+              <div
+                style={{
+                  border: "1px solid #ccc",
+                  width: "100%",
+                  height: "200px",
+                }}
+              >
+                <SignatureCanvas
+                  ref={sigCanvas}
+                  canvasProps={{
+                    className: "signature-canvas",
+                    style: { width: "100%", height: "100%" },
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: "10px" }}>
+                <button
+                  type="button"
+                  onClick={clearSignature}
+                  className="btn btn-secondary"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={saveSignature}
+                  className="btn btn-secondary"
+                  style={{ marginLeft: "10px" }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </>
         )}
-      </div>
 
-      <div className="form-field">
-        <label className="form-label">
-          Relationship <span className="required">*</span>
-        </label>
-        <select
-          name="relationship"
-          value={formData.relationship}
-          onChange={handleChange}
-          className="form-input"
-        >
-          <option value="">Select Relationship</option>
-          <option value="Father">Father</option>
-          <option value="Mother">Mother</option>
-          <option value="Legal Guardian">Legal Guardian</option>
-          <option value="Other">Other</option>
-        </select>
-        {formData.errors.relationship && (
-          <p className="error-message">{formData.errors.relationship}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Guardian Address <span className="required">*</span>
-        </label>
-        <textarea
-          name="guardianAddress"
-          value={formData.guardianAddress}
-          onChange={handleChange}
-          className="form-textarea"
-          rows="3"
-          placeholder="Enter guardian's full address"
-        />
-        {formData.errors.guardianAddress && (
-          <p className="error-message">{formData.errors.guardianAddress}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Mobile Number <span className="required">*</span>
-        </label>
-        <input
-          type="tel"
-          name="mobileNumber"
-          value={formData.mobileNumber}
-          onChange={handleChange}
-          className="form-input"
-          placeholder="e.g., 98XXXXXXXX"
-        />
-        {formData.errors.mobileNumber && (
-          <p className="error-message">{formData.errors.mobileNumber}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Email <span className="required">*</span>
-        </label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="form-input"
-          placeholder="guardian@example.com"
-        />
-        {formData.errors.email && (
-          <p className="error-message">{formData.errors.email}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">Guardian PAN Number</label>
-        <input
-          type="text"
-          name="panNumberGuardian"
-          value={formData.panNumberGuardian}
-          onChange={handleChange}
-          className="form-input"
-        />
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Birth Registration Number <span className="required">*</span>
-        </label>
-        <input
-          type="text"
-          name="birthRegistrationNumber"
-          value={formData.birthRegistrationNumber}
-          onChange={handleChange}
-          className="form-input"
-        />
-        {formData.errors.birthRegistrationNumber && (
-          <p className="error-message">
-            {formData.errors.birthRegistrationNumber}
+        {!formData.isMinor && (
+          <p style={{ color: "#666", fontStyle: "italic", marginTop: "1rem" }}>
+            Guardian information is not required for adults (18+ years).
           </p>
         )}
       </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Issue Date <span className="required">*</span>
-        </label>
-
-        <div className="grid-2-cols">
-          <div className="date-column">
-            <label className="small-label">English Date (AD)</label>
-            <input
-              type="date"
-              name="issueDate"
-              value={formData.issueDate}
-              onChange={(e) => {
-                const v = e.target.value;
-                setFormData((prev) => ({ ...prev, issueDate: v }));
-                if (v) {
-                  const bs = adToBs(v);
-                  if (bs) setFormData((prev) => ({ ...prev, issueDateBS: bs }));
-                }
-              }}
-              className="form-input"
-            />
-          </div>
-
-          <div className="date-column">
-            <label className="small-label">Nepali Date (BS)</label>
-            <input
-              type="text"
-              value={formData.issueDateBS || ""}
-              placeholder="YYYY-MM-DD"
-              onChange={(e) => {
-                const value = e.target.value;
-                setFormData((prev) => ({ ...prev, issueDateBS: value }));
-                if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-                  const ad = bsToAd(value);
-                  if (ad) setFormData((prev) => ({ ...prev, issueDate: ad }));
-                }
-              }}
-              className="form-input"
-            />
-          </div>
-        </div>
-
-        {formData.errors.issueDate && (
-          <p className="error-message">{formData.errors.issueDate}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Issue Authority <span className="required">*</span>
-        </label>
-        <input
-          type="text"
-          name="issueAuthority"
-          value={formData.issueAuthority}
-          onChange={handleChange}
-          className="form-input"
-          placeholder="e.g., District Administration Office"
-        />
-        {formData.errors.issueAuthority && (
-          <p className="error-message">{formData.errors.issueAuthority}</p>
-        )}
-      </div>
-
-      <div className="form-field">
-        <label className="form-label">
-          Guardian Signature <span className="required">*</span>
-        </label>
-        <div
-          style={{ border: "1px solid #ccc", width: "100%", height: "200px" }}
-        >
-          <SignatureCanvas
-            ref={sigCanvas}
-            canvasProps={{
-              className: "signature-canvas",
-              style: { width: "100%", height: "100%" },
-            }}
-          />
-        </div>
-        <div style={{ marginTop: "10px" }}>
-          <button
-            type="button"
-            onClick={clearSignature}
-            className="btn btn-secondary"
-          >
-            Clear Signature
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
+    );
+  };
   const renderStep7 = () => {
     return (
       <div className="form-section">
@@ -1737,7 +1849,11 @@ I/We hereby acknowledge that the above disclosed details are true. I/We further 
       </div>
 
       {/* Form Content */}
-      <form onSubmit={handleSubmit} className="form-card">
+      <form
+        onSubmit={handleSubmit}
+        onKeyPress={handleKeyPress}
+        className="form-card"
+      >
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}

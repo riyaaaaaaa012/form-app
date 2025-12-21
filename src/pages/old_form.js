@@ -6,10 +6,10 @@ import "nepali-datepicker-reactjs/dist/index.css";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import "./Form.css";
+import "../styles/Form.css";
 import NepaliDate from "nepali-date-converter";
 
-function Form() {
+function OldFrom() {
   const [currentStep, setCurrentStep] = useState(1);
   const [adbsReady, setAdbsReady] = useState(false);
 
@@ -1889,4 +1889,4 @@ I/We hereby acknowledge that the above disclosed details are true. I/We further 
   );
 }
 
-export default Form;
+export default OldFrom;

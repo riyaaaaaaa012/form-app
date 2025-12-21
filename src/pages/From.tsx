@@ -8,10 +8,13 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../styles/Form.css";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 9;
 
 function Form() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [submittedData, setSubmittedData] = useState<typeof formData | null>(
+    null
+  );
 
   /* -------------------- DATE CONVERSION -------------------- */
   const adToBs = (ad: string) => {
@@ -187,7 +190,7 @@ function Form() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (currentStep !== TOTAL_STEPS) return;
+    if (currentStep !== TOTAL_STEPS - 1) return;
 
     const payload = {
       ...formData,
@@ -202,12 +205,13 @@ function Form() {
         body: JSON.stringify(payload),
       });
 
+      setSubmittedData(payload);
+      setCurrentStep(TOTAL_STEPS); // Move to confirmation page
       alert("Form submitted successfully!");
     } catch {
       alert("Submission failed");
     }
   };
-
   /* -------------------- STEP RENDERER -------------------- */
   const renderStep = () => {
     switch (currentStep) {
@@ -225,6 +229,10 @@ function Form() {
         return renderStep6();
       case 7:
         return renderStep7();
+      case 8:
+        return renderStep8(); // This is now the submission step
+      case 9:
+        return renderConfirmationPage();
       default:
         return null;
     }
@@ -1691,169 +1699,538 @@ I/We hereby acknowledge that the above disclosed details are true. I/We further 
       </div>
     );
   };
-  return (
-    <div className="form-container">
-      {/* Progress Indicator */}
-      <div className="progress-container">
-        <div className="progress-wrapper">
-          <div
-            className={`progress-step ${
-              currentStep >= 1 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 1 ? "active" : "inactive"
-              }`}
-            >
-              1
+  const renderStep8 = () => (
+    <div className="form-section">
+      <h2 className="section-title">Final Review & Submission</h2>
+      <div className="final-review-section">
+        <div className="review-header">
+          <h3>Review Your Information Before Submission</h3>
+          <p className="review-subtitle">
+            Please review all the information you have provided. Once submitted,
+            you cannot make changes to this application.
+          </p>
+        </div>
+
+        <div className="review-summary">
+          <div className="summary-card">
+            <h4>Personal Information</h4>
+            <div className="summary-item">
+              <span className="summary-label">Full Name:</span>
+              <span className="summary-value">
+                {formData.fullName || "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Personal Info</p>
-          </div>
-          <div
-            className={`progress-line ${
-              currentStep >= 2 ? "active" : "inactive"
-            }`}
-          ></div>
-          <div
-            className={`progress-step ${
-              currentStep >= 2 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 2 ? "active" : "inactive"
-              }`}
-            >
-              2
+            <div className="summary-item">
+              <span className="summary-label">Date of Birth:</span>
+              <span className="summary-value">
+                {formData.dateOfBirth || "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Address</p>
-          </div>
-          <div
-            className={`progress-line ${
-              currentStep >= 3 ? "active" : "inactive"
-            }`}
-          ></div>
-          <div
-            className={`progress-step ${
-              currentStep >= 3 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 3 ? "active" : "inactive"
-              }`}
-            >
-              3
+            <div className="summary-item">
+              <span className="summary-label">Gender:</span>
+              <span className="summary-value">
+                {formData.gender || "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Family Info</p>
-          </div>
-          <div
-            className={`progress-line ${
-              currentStep >= 4 ? "active" : "inactive"
-            }`}
-          ></div>
-          <div
-            className={`progress-step ${
-              currentStep >= 4 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 4 ? "active" : "inactive"
-              }`}
-            >
-              4
+            <div className="summary-item">
+              <span className="summary-label">Citizenship Number:</span>
+              <span className="summary-value">
+                {formData.citizenshipNumber || "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Bank Account Detail</p>
           </div>
-          <div
-            className={`progress-line ${
-              currentStep >= 5 ? "active" : "inactive"
-            }`}
-          ></div>
-          <div
-            className={`progress-step ${
-              currentStep >= 5 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 5 ? "active" : "inactive"
-              }`}
-            >
-              5
+
+          <div className="summary-card">
+            <h4>Contact Information</h4>
+            <div className="summary-item">
+              <span className="summary-label">Contact Number:</span>
+              <span className="summary-value">
+                {formData.contactNumber || "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Occupation & Finance Detail</p>
-          </div>
-          <div
-            className={`progress-line ${
-              currentStep >= 6 ? "active" : "inactive"
-            }`}
-          ></div>
-          <div
-            className={`progress-step ${
-              currentStep >= 6 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 6 ? "active" : "inactive"
-              }`}
-            >
-              6
+            <div className="summary-item">
+              <span className="summary-label">Email:</span>
+              <span className="summary-value">
+                {formData.emailAddress || "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Guardian Information</p>
-          </div>
-          <div
-            className={`progress-line ${
-              currentStep >= 7 ? "active" : "inactive"
-            }`}
-          ></div>
-          <div
-            className={`progress-step ${
-              currentStep >= 7 ? "active" : "inactive"
-            }`}
-          >
-            <div
-              className={`progress-circle ${
-                currentStep >= 7 ? "active" : "inactive"
-              }`}
-            >
-              7
+            <div className="summary-item">
+              <span className="summary-label">Current Address:</span>
+              <span className="summary-value">
+                {formData.currentWardNo
+                  ? `${formData.currentWardNo}, ${formData.currentMunicipality}, ${formData.currentDistrict}`
+                  : "Not provided"}
+              </span>
             </div>
-            <p className="progress-label">Investment Disclosure</p>
           </div>
+
+          <div className="summary-card">
+            <h4>Bank Details</h4>
+            <div className="summary-item">
+              <span className="summary-label">Account Type:</span>
+              <span className="summary-value">
+                {formData.accountType || "Not provided"}
+              </span>
+            </div>
+            <div className="summary-item">
+              <span className="summary-label">Bank Name:</span>
+              <span className="summary-value">
+                {formData.bankName || "Not provided"}
+              </span>
+            </div>
+            <div className="summary-item">
+              <span className="summary-label">Account Number:</span>
+              <span className="summary-value">
+                {formData.bankAccount
+                  ? `****${formData.bankAccount.slice(-4)}`
+                  : "Not provided"}
+              </span>
+            </div>
+          </div>
+
+          <div className="summary-card">
+            <h4>Occupation Details</h4>
+            <div className="summary-item">
+              <span className="summary-label">Occupation Type:</span>
+              <span className="summary-value">
+                {formData.occupationType || "Not provided"}
+              </span>
+            </div>
+            <div className="summary-item">
+              <span className="summary-label">Annual Income:</span>
+              <span className="summary-value">
+                {formData.annualIncome || "Not provided"}
+              </span>
+            </div>
+            {formData.isMinor && (
+              <>
+                <div className="summary-item">
+                  <span className="summary-label">Guardian Name:</span>
+                  <span className="summary-value">
+                    {formData.guardianName || "Not provided"}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Relationship:</span>
+                  <span className="summary-value">
+                    {formData.relationship || "Not provided"}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">
+            <input type="checkbox" required className="checkbox-input" />I
+            confirm that all the information provided is accurate and complete
+            to the best of my knowledge.
+          </label>
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">
+            <input type="checkbox" required className="checkbox-input" />I agree
+            to the terms and conditions and understand that false information
+            may lead to legal consequences.
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderConfirmationPage = () => (
+    <div className="confirmation-page">
+      <div className="confirmation-header">
+        <div className="confirmation-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+        <h2>Application Submitted Successfully!</h2>
+        <p className="confirmation-subtitle">
+          Thank you for submitting your application. Your reference number is:
+        </p>
+        <div className="reference-number">
+          REF-{Date.now().toString().slice(-8)}
         </div>
       </div>
 
-      <form className="form-container" onSubmit={handleSubmit}>
-        {renderStep()}
-
-        <div className="form-navigation">
-          {currentStep > 1 && (
-            <button type="button" onClick={handlePrevious} className="btn">
-              Previous
-            </button>
-          )}
-
-          {currentStep < TOTAL_STEPS && (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="btn btn-primary"
-            >
-              Next
-            </button>
-          )}
-
-          {currentStep === TOTAL_STEPS && (
-            <button type="submit" className="btn btn-success">
-              Submit
-            </button>
-          )}
+      <div className="confirmation-details">
+        <div className="details-section">
+          <h3>Application Summary</h3>
+          <div className="details-grid">
+            <div className="detail-item">
+              <span className="detail-label">Submitted Date:</span>
+              <span className="detail-value">
+                {new Date().toLocaleDateString()}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Submitted Time:</span>
+              <span className="detail-value">
+                {new Date().toLocaleTimeString()}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Applicant Name:</span>
+              <span className="detail-value">
+                {submittedData?.fullName || formData.fullName}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Application Type:</span>
+              <span className="detail-value">New Registration</span>
+            </div>
+          </div>
         </div>
-      </form>
+
+        <div className="details-section">
+          <h3>Next Steps</h3>
+          <div className="next-steps">
+            <div className="step-item">
+              <div className="step-number">1</div>
+              <div className="step-content">
+                <h4>Application Review</h4>
+                <p>
+                  Our team will review your application within 3-5 business
+                  days.
+                </p>
+              </div>
+            </div>
+            <div className="step-item">
+              <div className="step-number">2</div>
+              <div className="step-content">
+                <h4>Verification Process</h4>
+                <p>We may contact you for additional verification if needed.</p>
+              </div>
+            </div>
+            <div className="step-item">
+              <div className="step-number">3</div>
+              <div className="step-content">
+                <h4>Approval Notification</h4>
+                <p>
+                  You will receive an email notification once your application
+                  is approved.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="details-section">
+          <h3>Important Information</h3>
+          <div className="important-info">
+            <div className="info-item">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <div>
+                <h4>Keep Your Reference Number</h4>
+                <p>
+                  You will need this reference number for any inquiries about
+                  your application.
+                </p>
+              </div>
+            </div>
+            <div className="info-item">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z" />
+                <path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z" />
+              </svg>
+              <div>
+                <h4>Check Your Email</h4>
+                <p>
+                  A confirmation email has been sent to{" "}
+                  {formData.emailAddress || "your provided email address"}.
+                </p>
+              </div>
+            </div>
+            <div className="info-item">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <div>
+                <h4>Processing Time</h4>
+                <p>Application processing typically takes 5-7 business days.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="action-buttons">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="btn btn-secondary"
+          >
+            Print Confirmation
+          </button>
+          <button
+            type="button"
+            onClick={() => (window.location.href = "/")}
+            className="btn btn-primary"
+          >
+            Return to Home
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              // You can implement download functionality here
+              const dataStr = JSON.stringify(
+                submittedData || formData,
+                null,
+                2
+              );
+              const dataUri =
+                "data:application/json;charset=utf-8," +
+                encodeURIComponent(dataStr);
+              const exportFileDefaultName = `application_${Date.now()}.json`;
+              const linkElement = document.createElement("a");
+              linkElement.setAttribute("href", dataUri);
+              linkElement.setAttribute("download", exportFileDefaultName);
+              linkElement.click();
+            }}
+            className="btn btn-outline"
+          >
+            Download Application Copy
+          </button>
+        </div>
+
+        <div className="contact-support">
+          <h4>Need Help?</h4>
+          <p>Contact our support team:</p>
+          <div className="contact-info">
+            <span>📞 01-1234567</span>
+            <span>✉️ support@example.com</span>
+            <span>📍 Kathmandu, Nepal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  return (
+    <div className="form-container">
+      {/* Progress Indicator - Hidden on confirmation page */}
+      {currentStep !== TOTAL_STEPS && (
+        <div className="progress-container">
+          <div className="progress-wrapper">
+            <div
+              className={`progress-step ${
+                currentStep >= 1 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 1 ? "active" : "inactive"
+                }`}
+              >
+                1
+              </div>
+              <p className="progress-label">Personal Info</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 2 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 2 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 2 ? "active" : "inactive"
+                }`}
+              >
+                2
+              </div>
+              <p className="progress-label">Address</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 3 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 3 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 3 ? "active" : "inactive"
+                }`}
+              >
+                3
+              </div>
+              <p className="progress-label">Family Info</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 4 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 4 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 4 ? "active" : "inactive"
+                }`}
+              >
+                4
+              </div>
+              <p className="progress-label">Bank Account Detail</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 5 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 5 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 5 ? "active" : "inactive"
+                }`}
+              >
+                5
+              </div>
+              <p className="progress-label">Occupation & Finance Detail</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 6 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 6 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 6 ? "active" : "inactive"
+                }`}
+              >
+                6
+              </div>
+              <p className="progress-label">Guardian Information</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 7 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 7 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 7 ? "active" : "inactive"
+                }`}
+              >
+                7
+              </div>
+              <p className="progress-label">Legal Details</p>
+            </div>
+            <div
+              className={`progress-line ${
+                currentStep >= 8 ? "active" : "inactive"
+              }`}
+            ></div>
+            <div
+              className={`progress-step ${
+                currentStep >= 8 ? "active" : "inactive"
+              }`}
+            >
+              <div
+                className={`progress-circle ${
+                  currentStep >= 8 ? "active" : "inactive"
+                }`}
+              >
+                8
+              </div>
+              <p className="progress-label">Review & Submit</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form or Confirmation Page */}
+      {currentStep !== TOTAL_STEPS ? (
+        <form className="form-container" onSubmit={handleSubmit}>
+          {renderStep()}
+
+          <div className="form-navigation">
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="btn btn-previous"
+              >
+                Previous
+              </button>
+            )}
+
+            {currentStep < TOTAL_STEPS - 1 && (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="btn btn-next"
+              >
+                Next
+              </button>
+            )}
+
+            {currentStep === TOTAL_STEPS - 1 && (
+              <button type="submit" className="btn btn-submit">
+                Submit Application
+              </button>
+            )}
+          </div>
+        </form>
+      ) : (
+        renderConfirmationPage()
+      )}
     </div>
   );
 }

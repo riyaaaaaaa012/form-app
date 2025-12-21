@@ -1,9 +1,12 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Otp.css";
+import Form from "./From";
 
 const Otp: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+  const navigate = useNavigate();
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
@@ -32,6 +35,7 @@ const Otp: React.FC = () => {
 
     if (enteredOtp.length === 6) {
       alert("OTP Verified (dummy)");
+      navigate("/form");
     } else {
       alert("Please enter complete OTP");
     }
